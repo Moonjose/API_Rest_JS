@@ -3,8 +3,9 @@ import User from '../models/User';
 class UserController {
   async store(req, res) {
     try {
-      const novoUser = await User.create(req.body);
-      return res.json(novoUser);
+      const createdUser = await User.create(req.body);
+      const { id, nome, email } = createdUser;
+      return res.json({ id, nome, email });
     } catch (e) {
       return res.status(400).json({
         errors: e.errors.map((err) => err.message),
@@ -14,7 +15,8 @@ class UserController {
 
   async index(req, res) {
     try {
-      const users = await User.findAll();
+      // attributes = filtra que campos devem ser mostrados
+      const users = await User.findAll({ attributes: ['id', 'nome', 'email'] });
       return res.json(users);
     } catch (e) {
       return res.json(null);
@@ -24,7 +26,9 @@ class UserController {
   async show(req, res) {
     try {
       const user = await User.findByPk(req.params.id);
-      return res.json(user);
+
+      const { id, nome, email } = user; // filtra os campos novamente
+      return res.json({ id, nome, email });
     } catch (e) {
       return res.json(null);
     }
@@ -32,12 +36,8 @@ class UserController {
 
   async update(req, res) {
     try {
-      if (!req.params.id) {
-        return res.status(400).json({
-          errors: ['ID não enviado.'],
-        });
-      }
-      const user = await User.findByPk(req.params.id);
+      // Edita apenas o usuário autenticado pelo token
+      const user = await User.findByPk(req.userId); // Deve estar autenticado
 
       if (!user) {
         return res.status(400).json({
@@ -46,7 +46,8 @@ class UserController {
       }
 
       const newUser = await user.update(req.body);
-      return res.json(newUser);
+      const { id, nome, email } = newUser;
+      return res.json({ id, nome, email });
     } catch (e) {
       return res.status(400).json({
         errors: e.errors.map((err) => err.message),
@@ -56,12 +57,7 @@ class UserController {
 
   async delete(req, res) {
     try {
-      if (!req.params.id) {
-        return res.status(400).json({
-          errors: ['ID não enviado.'],
-        });
-      }
-      const user = await User.findByPk(req.params.id);
+      const user = await User.findByPk(req.userId); // Deve estar autenticado
 
       if (!user) {
         return res.status(400).json({
@@ -70,7 +66,7 @@ class UserController {
       }
 
       await user.destroy();
-      return res.json(user);
+      return res.json(null);
     } catch (e) {
       return res.status(400).json({
         errors: e.errors.map((err) => err.message),
