@@ -30,7 +30,8 @@ class TokenController {
     const { id } = user;
 
     // Cria o token baseado no ID(Extraido do usuario acima)
-    // E no Email (Passado no corpo da req)
+    // no Email (Passado no corpo da req)
+    // e no TOKEN SECRET (Environment Variable)
     const token = jwt.sign(
       { id, email },
       process.env.TOKEN_SECRET,
